@@ -1,0 +1,179 @@
+<app-header [showBackButton]="true" (themeChanged)="onThemeChanged($event)"></app-header>
+
+<main class="flex-1 relative min-h-screen flex flex-col bg-surface-container-low pt-16">
+  
+  <!-- Loading State Indicator overlay -->
+  <div *ngIf="isServiceLoading()" class="fixed top-20 right-8 z-50 flex items-center bg-white dark:bg-slate-800 shadow-md rounded-lg px-4 py-2 border border-outline-variant">
+    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+    <span class="ml-2 text-xs text-on-surface-variant font-semibold">Querying AlphaVantage...</span>
+  </div>
+
+  <div class="p-gutter lg:p-xl space-y-gutter flex-1 max-w-[1400px] mx-auto w-full flex flex-col gap-6">
+
+ <!-- User Friendly API Rate Limit Warning Banner -->
+    <div *ngIf="apiWarning()" class="bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-500 rounded-xl p-4 flex items-center gap-3">
+      <span class="material-symbols-outlined text-xl">warning</span>
+      <p class="text-xs font-semibold leading-normal">
+        AlphaVantage API rate limit reached. Displaying last successfully fetched offline market data to maintain design layout.
+      </p>
+    </div>
+
+     <div class="lg:col-span-3">
+          <h1 class="text-display-lg text-on-surface mb-6 leading-[1.1] font-extrabold text-3xl sm:text-4xl md:text-5xl">Visitor Traffic Intelligence</h1>
+          <p class="text-body-lg text-on-surface-variant mb-8 max-w-2xl text-base">
+            High-density telemetry for institutional traffic monitoring and multi-origin session tracking. Monitoring global gateway activity in real-time.          
+          </p>
+      </div>
+   
+
+    <!-- Telemetry Metric Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-gutter">
+      
+      <!-- Bid Price -->
+      <div class="glass-card p-4 bg-white">
+        <p class="text-label-md text-on-surface-variant mb-1 uppercase tracking-wider text-[10px] font-bold">Real-time Bid</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-headline-lg text-on-surface font-bold text-2xl">
+            {{ selectedAsset() === 'GOLD' ? (bidRate() | currency:'USD':'symbol':'1.2-2') : (bidRate() | number:'1.4-4') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Ask Price -->
+      <div class="glass-card p-4 bg-white">
+        <p class="text-label-md text-on-surface-variant mb-1 uppercase tracking-wider text-[10px] font-bold">Real-time Ask</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-headline-lg text-on-surface font-bold text-2xl">
+            {{ selectedAsset() === 'GOLD' ? (askRate() | currency:'USD':'symbol':'1.2-2') : (askRate() | number:'1.4-4') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 24h High -->
+      <div class="glass-card p-4 bg-white">
+        <p class="text-label-md text-on-surface-variant mb-1 uppercase tracking-wider text-[10px] font-bold">24h High</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-headline-lg text-on-surface font-bold text-2xl">
+            {{ selectedAsset() === 'GOLD' ? (dailyHigh() | currency:'USD':'symbol':'1.2-2') : (dailyHigh() | number:'1.4-4') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 24h Low -->
+      <div class="glass-card p-4 bg-white">
+        <p class="text-label-md text-on-surface-variant mb-1 uppercase tracking-wider text-[10px] font-bold">24h Low</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-headline-lg text-on-surface font-bold text-2xl">
+            {{ selectedAsset() === 'GOLD' ? (dailyLow() | currency:'USD':'symbol':'1.2-2') : (dailyLow() | number:'1.4-4') }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Chart Section -->
+    <section class="glass-card p-6 relative overflow-hidden flex-1 bg-white">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-on-surface text-xl font-bold">Historical Volume Analysis</h2>
+          <p class="font-body-md text-body-md text-on-surface-variant text-sm">
+            Multi-origin request volume and success rate correlation for
+            <span class="text-primary font-bold">{{ selectedAsset() === 'GOLD' ? 'Gold (XAU)' : selectedAsset() === 'EUR' ? 'Euro (EUR)' : 'Tether (USDT)' }}</span>.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4 items-center">
+          
+          <!-- Asset Toggles -->
+          <div class="flex bg-surface-container p-1 rounded-md border border-outline-variant mr-2 text-xs font-semibold">
+            <button 
+              (click)="selectAsset('GOLD')" 
+              [class.bg-primary]="selectedAsset() === 'GOLD'" 
+              [class.text-white]="selectedAsset() === 'GOLD'"
+              [class.text-on-surface-variant]="selectedAsset() !== 'GOLD'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Gold
+            </button>
+            <button 
+              (click)="selectAsset('EUR')" 
+              [class.bg-primary]="selectedAsset() === 'EUR'" 
+              [class.text-white]="selectedAsset() === 'EUR'"
+              [class.text-on-surface-variant]="selectedAsset() !== 'EUR'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Euro
+            </button>
+            <button 
+              (click)="selectAsset('USDT')" 
+              [class.bg-primary]="selectedAsset() === 'USDT'" 
+              [class.text-white]="selectedAsset() === 'USDT'"
+              [class.text-on-surface-variant]="selectedAsset() !== 'USDT'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Tether
+            </button>
+          </div>
+
+          <!-- Interval Toggles -->
+          <div class="flex bg-surface-container p-1 rounded-md border border-outline-variant text-xs font-semibold">
+            <button 
+              (click)="selectInterval('daily')" 
+              [class.bg-primary]="selectedInterval() === 'daily'" 
+              [class.text-white]="selectedInterval() === 'daily'"
+              [class.text-on-surface-variant]="selectedInterval() !== 'daily'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Daily
+            </button>
+            <button 
+              (click)="selectInterval('weekly')" 
+              [class.bg-primary]="selectedInterval() === 'weekly'" 
+              [class.text-white]="selectedInterval() === 'weekly'"
+              [class.text-on-surface-variant]="selectedInterval() !== 'weekly'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Weekly
+            </button>
+            <button 
+              (click)="selectInterval('monthly')" 
+              [class.bg-primary]="selectedInterval() === 'monthly'" 
+              [class.text-white]="selectedInterval() === 'monthly'"
+              [class.text-on-surface-variant]="selectedInterval() !== 'monthly'"
+              class="px-3 py-1 text-[10px] font-label-md rounded-md transition-colors cursor-pointer"
+            >
+              Monthly
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="h-96 w-full relative">
+        <canvas #historicalChart></canvas>
+      </div>
+    </section>
+
+    <!-- Ticker Tape Marquee Footer -->
+    <footer class="w-full py-8 border-t border-outline-variant/50 overflow-hidden relative mt-auto">
+      <div class="flex animate-marquee whitespace-nowrap gap-12 font-mono text-[11px] text-on-surface-variant font-bold uppercase tracking-widest">
+        <span class="flex gap-2 items-center">US-EAST <span class="text-[#16a34a] font-bold">+1.24%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 4,921 req/s</span>
+        <span class="flex gap-2 items-center">EU-WEST <span class="text-[#16a34a] font-bold">+2.15%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 17,894 req/s</span>
+        <span class="flex gap-2 items-center">AP-SOUTH <span class="text-red-500 font-bold">-0.44%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 8,231 req/s</span>
+        <span class="flex gap-2 items-center">LATAM <span class="text-[#16a34a] font-bold">+0.12%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 2,044 req/s</span>
+        <span class="flex gap-2 items-center">AUSTRALIA <span class="text-red-500 font-bold">-1.82%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 3,412 req/s</span>
+        <span class="flex gap-2 items-center">ME-NORTH <span class="text-[#16a34a] font-bold">+0.88%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 1,189 req/s</span>
+        
+        <!-- Duplicate for loop seamlessness -->
+        <span class="flex gap-2 items-center">US-EAST <span class="text-[#16a34a] font-bold">+1.24%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 4,921 req/s</span>
+        <span class="flex gap-2 items-center">EU-WEST <span class="text-[#16a34a] font-bold">+2.15%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 17,894 req/s</span>
+        <span class="flex gap-2 items-center">AP-SOUTH <span class="text-red-500 font-bold">-0.44%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 8,231 req/s</span>
+        <span class="flex gap-2 items-center">LATAM <span class="text-[#16a34a] font-bold">+0.12%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 2,044 req/s</span>
+        <span class="flex gap-2 items-center">AUSTRALIA <span class="text-red-500 font-bold">-1.82%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 3,412 req/s</span>
+        <span class="flex gap-2 items-center">ME-NORTH <span class="text-[#16a34a] font-bold">+0.88%</span> <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> 1,189 req/s</span>
+      </div>
+    </footer>
+  </div>
+</main>
+
+<app-footer class="mt-6 block rounded-xl w-full"></app-footer>

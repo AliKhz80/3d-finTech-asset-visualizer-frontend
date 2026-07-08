@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@theme {
+  --color-secondary-fixed: #d5e3fc;
+  --color-on-surface-variant: #414753;
+  --color-on-secondary: #ffffff;
+  --color-surface-tint: #005db8;
+  --color-surface-dim: #d8dae3;
+  --color-surface-container-highest: #e0e2ec;
+  --color-on-tertiary-container: #ffffff;
+  --color-background: #f9f9ff;
+  --color-inverse-surface: #2d3038;
+  --color-error-container: #ffdad6;
+  --color-on-tertiary-fixed: #331100;
+  --color-surface-container-low: #f2f3fd;
+  --color-on-primary: #ffffff;
+  --color-on-secondary-fixed: #0d1c2e;
+  --color-on-primary-fixed-variant: #00458d;
+  --color-tertiary-fixed: #ffdbca;
+  --color-on-tertiary: #ffffff;
+  --color-primary: #1275e2;
+  --color-surface-bright: #f9f9ff;
+  --color-on-background: #181c22;
+  --color-primary-container: #1275e2;
+  --color-outline: #717785;
+  --color-on-primary-container: #000512;
+  --color-on-surface: #181c22;
+  --color-inverse-primary: #aac7ff;
+  --color-surface-container-high: #e6e8f1;
+  --color-secondary: #515f74;
+  --color-secondary-container: #d5e3fc;
+  --color-primary-fixed: #d6e3ff;
+  --color-on-secondary-fixed-variant: #3a485b;
+  --color-secondary-fixed-dim: #b9c7df;
+  --color-surface: #f9f9ff;
+  --color-on-primary-fixed: #001b3e;
+  --color-surface-variant: #e0e2ec;
+  --color-tertiary: #9c4300;
+  --color-outline-variant: #c1c6d5;
+  --color-surface-container: #ecedf7;
+  --color-on-error: #ffffff;
+  --color-error: #ba1a1a;
+  --color-primary-fixed-dim: #aac7ff;
+  --color-inverse-on-surface: #eff0fa;
+  --color-tertiary-container: #c35600;
+  --color-on-error-container: #93000a;
+  --color-on-tertiary-fixed-variant: #773200;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-secondary-container: #57657a;
+  --color-tertiary-fixed-dim: #ffb68f;
+
+  --border-radius-DEFAULT: 8px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 8px;
+  --border-radius-full: 9999px;
+
+  --spacing-container-max: 1280px;
+  --spacing-lg: 48px;
+  --spacing-xl: 80px; 
+  --spacing-base: 4px;
+  --spacing-sm: 16px;
+  --spacing-xs: 8px;
+  --spacing-gutter: 24px;
+  --spacing-md: 24px;
+  --spacing-stack-compact: 8px;
+  --spacing-stack-loose: 24px;
+  --spacing-container-margin: 24px;
+
+  --font-display-lg: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-headline-md: "Inter", sans-serif;
+  --font-headline-lg: "Inter", sans-serif;
+  --font-label-md: "Inter", sans-serif;
+  --font-mono-data: "Inter", sans-serif;
+
+  
+  --font-size-display-lg: 64px;
+  --font-size-headline-lg: 32px;
+  --font-size-headline-md: 24px;
+  --font-size-body-lg: 18px;
+  --font-size-label-md: 14px;
+  --font-size-mono-data: 13px;
+  --font-size-stat-lg: 24px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  overflow-x: hidden;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+.glass-card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.active-ring {
+  box-shadow: 0 0 0 2px #1275e2, 0 4px 20px rgba(18, 117, 226, 0.15);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-dim);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c6d5;
+  border-radius: 10px;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 40s linear infinite;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  min-width: 160px;
+  background-color: #ffffff;
+  border: 1px solid #c1c6d5;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.dropdown:focus-within .dropdown-content {
+  display: block;
+}
+
+/* Dark theme structure support */
+.dark {
+  --color-surface: #0b0f19;
+  --color-on-surface: #eff0fa;
+  --color-on-surface-variant: #94a3b8;
+  --color-surface-bright: #0f172a;
+  --color-surface-container-low: #1e293b;
+  --color-outline-variant: #1e293b;
+  --color-surface-container-lowest: #0f172a;
+  --color-surface-dim: #1e293b;
+  --color-surface-container: #1e293b;
+  --color-surface-container-high: #334155;
+  --color-surface-container-highest: #475569;
+  --color-outline: #64748b;
+  --color-background: #0b0f19;
+  
+  color: #eff0fa;
+}
+
+.dark body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark .glass-card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-surface-container-high);
+}
