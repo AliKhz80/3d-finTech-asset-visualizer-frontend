@@ -1,0 +1,175 @@
+<div class="p-gutter lg:p-xl space-y-gutter flex-1 max-w-[1600px] mx-auto w-full flex flex-col gap-6 pt-6 animate-fade-in">
+      
+      <!-- Row 1: How to Calculate (50%) & Calculator Card (50%) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-stretch">
+        
+        <!-- Left Column: How it works text guide (50% width on md) -->
+        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-outline-variant/30 bg-surface-container-low/40 flex flex-col gap-4">
+          <h3 class="text-base font-bold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">info</span>
+            <span>How to Calculate Money Exchange</span>
+          </h3>
+          <div class="text-[15px] text-on-surface-variant space-y-3 leading-relaxed flex-1 flex flex-col justify-between">
+            <div class="space-y-3">
+              <p>
+                This converter performs real-time margin exchanges by converting currency rates dynamically. 
+                To ensure accuracy across different markets, we employ a **USD Base Bridge** math model.
+              </p>
+              <div class="border-l-2 border-primary/30 pl-3 space-y-2">
+                <div>
+                  <strong class="text-on-surface text-[13px]">Step 1: Base Conversion (To USD)</strong>
+                  <p class="text-[12px]">The input currency (e.g. EUR or Gold Spot) is converted to its current equivalent value in US Dollars (USD).</p>
+                </div>
+                <div>
+                  <strong class="text-on-surface text-[13px]">Step 2: Quote Conversion (From USD)</strong>
+                  <p class="text-[12px]">The US Dollar base value is then converted into the destination currency (e.g. Gold Spot or EUR) using the target ratio.</p>
+                </div>
+              </div>
+            </div>
+            <p class="border-t border-outline-variant/20 pt-3 text-[15px]">
+              All rates are automatically fetched from **AlphaVantage** digital indices. In the event of network rate limits, local cached telemetry will automatically be served as offline placeholders.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Column: Money Exchange Calculator Container (50% width on md) -->
+        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-outline-variant/30 bg-surface-container-low/40 flex flex-col justify-between gap-6">
+          
+          <!-- Header Section -->
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-2xl">calculate</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Money Exchange</h2>
+              <p class="text-xs text-on-surface-variant">Real-time exchange ratios powered by AlphaVantage</p>
+            </div>
+          </div>
+
+          <!-- Telemetry HUD showing current live conversion rates -->
+          <div class="grid grid-cols-3 gap-2 bg-surface-container/30 border border-outline-variant/20 p-3 rounded-xl text-[10px] sm:text-xs font-mono">
+            <div class="flex flex-col gap-1">
+              <span class="text-on-surface-variant uppercase text-[8px] sm:text-[9px]">EUR/USD</span>
+              <span class="font-bold text-on-surface font-mono-data">
+                {{ isRatesLoading() ? '...' : (eurRate() | number:'1.4-4') }}
+              </span>
+            </div>
+            <div class="flex flex-col gap-1 border-x border-outline-variant/30 px-3">
+              <span class="text-on-surface-variant uppercase text-[8px] sm:text-[9px]">USDT/USD</span>
+              <span class="font-bold text-on-surface font-mono-data">
+                {{ isRatesLoading() ? '...' : (usdtRate() | number:'1.4-4') }}
+              </span>
+            </div>
+            <div class="flex flex-col gap-1 pl-3">
+              <span class="text-on-surface-variant uppercase text-[8px] sm:text-[9px]">GOLD/USD</span>
+              <span class="font-bold text-on-surface font-mono-data text-amber-500 dark:text-amber-400">
+                {{ isRatesLoading() ? '...' : (goldRate() | number:'1.2-2') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Interactive Calculator Form -->
+          <div class="flex flex-col gap-4">
+            
+            <!-- Amount Input -->
+            <div class="flex flex-col gap-1">
+              <label for="calc-amount" class="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Amount</label>
+              <div class="relative rounded-xl overflow-hidden bg-surface-container border border-outline-variant/30 hover:border-primary/50 transition-all">
+                <input 
+                  id="calc-amount"
+                  type="number"
+                  min="0"
+                  [ngModel]="amount()"
+                  (ngModelChange)="amount.set($event)"
+                  class="w-full bg-transparent px-4 py-2.5 text-on-surface font-mono-data text-base focus:outline-none"
+                  placeholder="Enter amount..."
+                />
+              </div>
+            </div>
+
+            <!-- Currency Selectors -->
+            <div class="grid grid-cols-9 gap-2 items-center">
+              
+              <!-- From Select -->
+              <div class="col-span-4 flex flex-col gap-1">
+                <label for="from-currency" class="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">From</label>
+                <div class="relative bg-surface-container border border-outline-variant/30 rounded-xl overflow-hidden">
+                  <select 
+                    id="from-currency"
+                    [ngModel]="fromCurrency()"
+                    (ngModelChange)="fromCurrency.set($event)"
+                    class="w-full bg-transparent px-3 py-2.5 pr-8 text-on-surface text-xs focus:outline-none cursor-pointer appearance-none dark:bg-slate-900"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USDT">USDT</option>
+                    <option value="GOLD">XAU</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm">arrow_drop_down</span>
+                </div>
+              </div>
+
+              <!-- Swap Button -->
+              <div class="col-span-1 flex justify-center pt-4">
+                <button (click)="swapCurrencies()" class="w-8 h-8 rounded-full bg-surface-container hover:bg-primary hover:text-white border border-outline-variant/30 hover:border-primary flex items-center justify-center text-on-surface transition-all shadow-sm cursor-pointer" aria-label="Swap Currencies">
+                  <span class="material-symbols-outlined text-sm">swap_horiz</span>
+                </button>
+              </div>
+
+              <!-- To Select -->
+              <div class="col-span-4 flex flex-col gap-1">
+                <label for="to-currency" class="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">To</label>
+                <div class="relative bg-surface-container border border-outline-variant/30 rounded-xl overflow-hidden">
+                  <select 
+                    id="to-currency"
+                    [ngModel]="toCurrency()"
+                    (ngModelChange)="toCurrency.set($event)"
+                    class="w-full bg-transparent px-3 py-2.5 pr-8 text-on-surface text-xs focus:outline-none cursor-pointer appearance-none dark:bg-slate-900"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USDT">USDT</option>
+                    <option value="GOLD">XAU</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm">arrow_drop_down</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Live Result Box -->
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-4 flex flex-col items-center justify-center text-center mt-2">
+            <div class="font-mono-data font-extrabold text-lg md:text-xl text-primary mb-0.5">
+              {{ (amount() || 0) | number:'1.2-4' }} {{ fromCurrency() }} = {{ result() | number:'1.2-4' }} {{ toCurrency() }}
+            </div>
+            <p class="text-[9px] text-on-surface-variant font-mono">
+              1 {{ fromCurrency() }} = {{ (result() / ((amount() || 1) || 1)) | number:'1.2-6' }} {{ toCurrency() }}
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Row 2: Full Width 3D World Globe -->
+      <div class="glass-panel p-6 md:p-8 rounded-2xl border border-outline-variant/30 bg-surface-container-low/40 flex flex-col gap-4 relative overflow-hidden min-h-[350px] w-full">
+        <h3 class="text-base font-bold text-on-surface flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">public</span>
+            <span>Global Exchange Capital Network</span>
+          </span>
+          <span class="text-[12px] font-mono text-emerald-500 uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Active Node Streams</span>
+        </h3>
+        
+        <!-- 3D Canvas element container -->
+        <div #trading3dContainer class="flex-1 w-full min-h-[400px] cursor-grab active:cursor-grabbing relative z-10"></div>
+        
+        <div class="absolute bottom-3 left-4 text-[12px] font-mono text-on-surface-variant uppercase tracking-widest pointer-events-none select-none bg-surface-container-highest/60 backdrop-blur-sm px-2 py-1 rounded border border-outline-variant/30 flex items-center gap-1.5 z-20">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>3D Network: World Globe Engine Active</span>
+        </div>
+      </div>
+
+    </div>

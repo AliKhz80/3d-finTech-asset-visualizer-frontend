@@ -12,7 +12,6 @@ import { MarketDataService } from '../../../services/market-data-service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnInit {
-  @Output() themeChanged = new EventEmitter<boolean>();
 
   public isDarkMode = signal<boolean>(false);
   public currentUrl = signal<string>('');
@@ -45,7 +44,6 @@ export class HeaderComponent implements OnInit {
         this.isDarkMode.set(false);
         this.marketDataService.isDarkMode.set(false);
       }
-      this.themeChanged.emit(useDark);
     }
   }
 
@@ -65,7 +63,6 @@ export class HeaderComponent implements OnInit {
         dark = true;
         localStorage.setItem('theme', 'dark');
       }
-      this.themeChanged.emit(dark);
     }
   }
 }

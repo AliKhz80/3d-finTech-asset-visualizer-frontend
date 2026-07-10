@@ -1,141 +1,31 @@
-import { ChangeDetectionStrategy, Component, Inject, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, ViewChild, signal, computed, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarketDataService } from '../../services/market-data-service';
 import { Currency } from '../../models/currency.enum';
 
+declare var THREE: any;
+
 @Component({
   standalone: true,
   selector: 'app-calculator',
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="p-gutter lg:p-xl space-y-gutter flex-1 max-w-[800px] mx-auto w-full flex flex-col gap-6 pt-6">
-      
-      <!-- Calculator Main Panel -->
-      <div class="glass-panel p-6 md:p-8 rounded-2xl border border-outline-variant/30 bg-surface-container-low/40 flex flex-col gap-6">
-        
-        <!-- Header Section -->
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-2xl">calculate</span>
-          </div>
-          <div>
-            <h2 class="text-xl font-bold text-on-surface">Money Exchange Calculator</h2>
-            <p class="text-xs text-on-surface-variant">Real-time exchange ratios powered by AlphaVantage</p>
-          </div>
-        </div>
-
-        <!-- Telemetry HUD showing current live conversion rates -->
-        <div class="grid grid-cols-3 gap-2 bg-surface-container/30 border border-outline-variant/20 p-4 rounded-xl text-xs font-mono">
-          <div class="flex flex-col gap-1">
-            <span class="text-[9px] text-on-surface-variant uppercase tracking-widest">EUR / USD</span>
-            <span class="font-bold text-on-surface font-mono-data">
-              {{ isRatesLoading() ? '...' : (eurRate() | number:'1.4-4') }}
-            </span>
-          </div>
-          <div class="flex flex-col gap-1 border-x border-outline-variant/30 px-3 md:px-4">
-            <span class="text-[9px] text-on-surface-variant uppercase tracking-widest">USDT / USD</span>
-            <span class="font-bold text-on-surface font-mono-data">
-              {{ isRatesLoading() ? '...' : (usdtRate() | number:'1.4-4') }}
-            </span>
-          </div>
-          <div class="flex flex-col gap-1 pl-3 md:pl-4">
-            <span class="text-[9px] text-on-surface-variant uppercase tracking-widest">GOLD / USD</span>
-            <span class="font-bold text-on-surface font-mono-data text-amber-500 dark:text-amber-400">
-              {{ isRatesLoading() ? '...' : (goldRate() | number:'1.2-2') }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Interactive Calculator Form -->
-        <div class="flex flex-col gap-4 relative">
-          
-          <!-- Amount Input Card -->
-          <div class="flex flex-col gap-1.5">
-            <label for="calc-amount" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Amount</label>
-            <div class="relative rounded-xl overflow-hidden bg-surface-container border border-outline-variant/30 hover:border-primary/50 transition-all">
-              <input 
-                id="calc-amount"
-                type="number"
-                min="0"
-                [ngModel]="amount()"
-                (ngModelChange)="amount.set($event)"
-                class="w-full bg-transparent px-4 py-3.5 text-on-surface font-mono-data text-lg focus:outline-none"
-                placeholder="Enter amount..."
-              />
-            </div>
-          </div>
-
-          <!-- Currency Exchange Selector Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-9 gap-4 items-center">
-            
-            <!-- Source Currency -->
-            <div class="md:col-span-4 flex flex-col gap-1.5">
-              <label for="from-currency" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">From</label>
-              <div class="relative bg-surface-container border border-outline-variant/30 rounded-xl overflow-hidden">
-                <select 
-                  id="from-currency"
-                  [ngModel]="fromCurrency()"
-                  (ngModelChange)="fromCurrency.set($event)"
-                  class="w-full bg-transparent px-4 py-3.5 pr-10 text-on-surface text-sm focus:outline-none cursor-pointer appearance-none dark:bg-slate-900"
-                >
-                  <option value="USD">USD - US Dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="USDT">USDT - Tether</option>
-                  <option value="GOLD">XAU - Gold Ounce</option>
-                </select>
-                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">arrow_drop_down</span>
-              </div>
-            </div>
-
-            <!-- Swap Currencies Trigger Button -->
-            <div class="md:col-span-1 flex justify-center pt-5">
-              <button (click)="swapCurrencies()" class="w-10 h-10 rounded-full bg-surface-container hover:bg-primary hover:text-white border border-outline-variant/30 hover:border-primary flex items-center justify-center text-on-surface transition-all shadow-sm cursor-pointer" aria-label="Swap Currencies">
-                <span class="material-symbols-outlined text-lg">swap_horiz</span>
-              </button>
-            </div>
-
-            <!-- Destination Currency -->
-            <div class="md:col-span-4 flex flex-col gap-1.5">
-              <label for="to-currency" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">To</label>
-              <div class="relative bg-surface-container border border-outline-variant/30 rounded-xl overflow-hidden">
-                <select 
-                  id="to-currency"
-                  [ngModel]="toCurrency()"
-                  (ngModelChange)="toCurrency.set($event)"
-                  class="w-full bg-transparent px-4 py-3.5 pr-10 text-on-surface text-sm focus:outline-none cursor-pointer appearance-none dark:bg-slate-900"
-                >
-                  <option value="USD">USD - US Dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="USDT">USDT - Tether</option>
-                  <option value="GOLD">XAU - Gold Ounce</option>
-                </select>
-                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">arrow_drop_down</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Calculated Live Result Box -->
-        <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center mt-4">
-          <span class="text-xs text-on-surface-variant uppercase tracking-wider mb-2">Calculated Exchange Value</span>
-          <div class="font-mono-data font-extrabold text-2xl md:text-3xl text-primary mb-1">
-            {{ (amount() || 0) | number:'1.2-4' }} {{ fromCurrency() }} = {{ result() | number:'1.2-4' }} {{ toCurrency() }}
-          </div>
-          <p class="text-[10px] text-on-surface-variant font-mono">
-            1 {{ fromCurrency() }} = {{ (result() / ((amount() || 1) || 1)) | number:'1.2-6' }} {{ toCurrency() }}
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-  `,
+  templateUrl: './calculator.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CalculatorComponent implements OnInit {
+export class CalculatorComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('trading3dContainer', { static: false }) trading3dContainer!: ElementRef<HTMLDivElement>;
+
+  // Three.js instances
+  private scene: any;
+  private camera: any;
+  private renderer: any;
+  private candlesticksGroup: any;
+  private animationFrameId: number | null = null;
+  private resizeObserver: any;
+  private mouseX = 0;
+  private mouseY = 0;
+
   // Conversion Rates (Default fallback values matching global defaults)
   public eurRate = signal<number>(1.0943);
   public usdtRate = signal<number>(0.9998);
@@ -181,11 +71,60 @@ export class CalculatorComponent implements OnInit {
   constructor(
     private marketDataService: MarketDataService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
+    // Reactively update 3D Globe colors on theme changes
+    effect(() => {
+      const isDark = this.marketDataService.isDarkMode();
+      if (isPlatformBrowser(this.platformId)) {
+        if (this.candlesticksGroup && this.candlesticksGroup.children.length > 0) {
+          const globeMesh = this.candlesticksGroup.children[0];
+          if (globeMesh && globeMesh.material) {
+            globeMesh.material.color.setHex(isDark ? 0x60a5fa : 0x1d4ed8);
+          }
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchConversionRates();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        this.init3dTradingVisualizer();
+      }, 50);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    try {
+      if (this.scene) {
+        this.scene.traverse((object: any) => {
+          if (object.geometry) object.geometry.dispose();
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material: any) => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+      }
+      if (this.renderer) {
+        this.renderer.dispose();
+      }
+    } catch (err) {
+      console.warn('Failed to dispose 3D trading visualizer resources:', err);
     }
   }
 
@@ -230,6 +169,158 @@ export class CalculatorComponent implements OnInit {
         this.isRatesLoading.set(false);
       }
     });
+  }
+
+  private init3dTradingVisualizer(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.trading3dContainer) return;
+
+    try {
+      const container = this.trading3dContainer.nativeElement;
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 300;
+
+      // Scene
+      this.scene = new THREE.Scene();
+
+      // Camera
+      this.camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+      this.camera.position.set(0, 0, 8);
+      this.camera.lookAt(0, 0, 0);
+
+      // Renderer
+      this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      this.renderer.setSize(width, height);
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(this.renderer.domElement);
+
+      // Group
+      this.candlesticksGroup = new THREE.Group();
+      this.scene.add(this.candlesticksGroup);
+
+      // 1. Core Globe (Wireframe Sphere)
+      const globeGeometry = new THREE.SphereGeometry(1.6, 24, 24);
+      const isDark = document.documentElement.classList.contains('dark');
+      const globeColor = isDark ? 0x60a5fa : 0x1d4ed8;
+      const globeMaterial = new THREE.MeshBasicMaterial({
+        color: globeColor,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25
+      });
+      const globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
+      this.candlesticksGroup.add(globeMesh);
+
+      // 2. Latitude Ring
+      const ring1Geometry = new THREE.RingGeometry(1.605, 1.615, 64);
+      const ring1Material = new THREE.MeshBasicMaterial({
+        color: 0x3b82f6,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.3
+      });
+      const latRing = new THREE.Mesh(ring1Geometry, ring1Material);
+      latRing.rotation.x = Math.PI / 2;
+      this.candlesticksGroup.add(latRing);
+
+      // 3. Financial Transaction Network Curves (Arching over the globe)
+      const curveColor = 0x10b981; // Green
+      const pointsArray = [
+        { start: new THREE.Vector3(1.1, 0.9, 0.8), end: new THREE.Vector3(-1.1, -0.9, -0.8), peak: new THREE.Vector3(0, 2.2, 0) },
+        { start: new THREE.Vector3(-1.1, 0.9, 0.8), end: new THREE.Vector3(1.1, -0.9, -0.8), peak: new THREE.Vector3(0, 2.2, 1.0) },
+        { start: new THREE.Vector3(0.5, 1.4, -0.5), end: new THREE.Vector3(-0.5, -1.4, 0.5), peak: new THREE.Vector3(1.0, 0, 2.0) }
+      ];
+
+      pointsArray.forEach((pts) => {
+        const curve = new THREE.QuadraticBezierCurve3(pts.start, pts.peak, pts.end);
+        const curvePoints = curve.getPoints(30);
+        const curveGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+        const curveMat = new THREE.LineBasicMaterial({
+          color: curveColor,
+          transparent: true,
+          opacity: 0.4
+        });
+        const line = new THREE.Line(curveGeo, curveMat);
+        this.candlesticksGroup.add(line);
+      });
+
+      // 4. Orbiting Currency Asset Nodes (EUR, USD, USDT, GOLD)
+      const nodeData = [
+        { label: 'USD', color: 0x10b981, radius: 2.1, speed: 0.3 },
+        { label: 'EUR', color: 0x3b82f6, radius: 2.5, speed: 0.2 },
+        { label: 'USDT', color: 0x0d9488, radius: 1.8, speed: 0.45 },
+        { label: 'GOLD', color: 0xf59e0b, radius: 2.9, speed: 0.15 }
+      ];
+
+      const nodeGroup = new THREE.Group();
+      this.candlesticksGroup.add(nodeGroup);
+      const meshes: any[] = [];
+
+      nodeData.forEach((node) => {
+        const nodeGeo = new THREE.SphereGeometry(0.09, 8, 8);
+        const nodeMat = new THREE.MeshBasicMaterial({ color: node.color });
+        const mesh = new THREE.Mesh(nodeGeo, nodeMat);
+        nodeGroup.add(mesh);
+        meshes.push(mesh);
+      });
+
+      // Render Loop
+      const animate = () => {
+        this.animationFrameId = requestAnimationFrame(animate);
+
+        // Rotate globe group
+        this.candlesticksGroup.rotation.y += 0.002;
+        this.candlesticksGroup.rotation.x += 0.0003;
+
+        // Position nodes in spherical orbit paths
+        const time = Date.now() * 0.001;
+        meshes.forEach((mesh, idx) => {
+          const data = nodeData[idx];
+          const angle = time * data.speed;
+          mesh.position.x = Math.cos(angle) * data.radius;
+          mesh.position.z = Math.sin(angle) * data.radius;
+          mesh.position.y = Math.sin(angle * 0.5) * (data.radius * 0.2); // orbital tilt
+        });
+
+        // Mouse interactive orbital offsets
+        const targetX = this.mouseX * 0.3;
+        const targetY = this.mouseY * 0.3;
+        this.candlesticksGroup.rotation.y += (targetX - this.candlesticksGroup.rotation.y) * 0.05;
+        this.candlesticksGroup.rotation.x += (targetY - this.candlesticksGroup.rotation.x) * 0.05;
+
+        this.renderer.render(this.scene, this.camera);
+      };
+      animate();
+
+      // Mouse interactive capture
+      container.addEventListener('mousemove', (e) => {
+        const rect = container.getBoundingClientRect();
+        this.mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      });
+
+      container.addEventListener('mouseleave', () => {
+        this.mouseX = 0;
+        this.mouseY = 0;
+      });
+
+      // Resize observer
+      if (typeof ResizeObserver !== 'undefined') {
+        this.resizeObserver = new ResizeObserver(() => {
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          if (w && h) {
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(w, h);
+          }
+        });
+        this.resizeObserver.observe(container);
+      }
+
+    } catch (e) {
+      console.warn('Failed to initialize 3D World Globe visualizer:', e);
+    }
   }
 
   public swapCurrencies(): void {
