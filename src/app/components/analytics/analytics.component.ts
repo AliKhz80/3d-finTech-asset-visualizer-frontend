@@ -1,17 +1,16 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, OnDestroy, PLATFORM_ID, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, OnDestroy, PLATFORM_ID, ViewChild, signal, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarketDataService } from '../../services/market-data-service';
 import { Currency } from '../../models/currency.enum';
-import { HeaderComponent } from '../../shared/components/header/header.component';
-import { FooterComponent } from '../../shared/components/footer/footer.component';
 
 declare var Chart: any;
 
 @Component({
   standalone: true,
   selector: 'analytics',
-  imports: [CommonModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule],
   templateUrl: './analytics.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsComponent implements OnInit, OnDestroy {
   @ViewChild('historicalChart', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -35,12 +34,25 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   // Main historical chart instance
   private mainChart: any = null;
 
+  private activeChartDataPoints: any[] = [];
+
   constructor(
     private marketDataService: MarketDataService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isServiceLoading = this.marketDataService.isLoading;
     this.serviceError = this.marketDataService.error;
+
+    // Reactively redraw Chart.js gridlines/ticks on theme changes
+    effect(() => {
+      const isDark = this.marketDataService.isDarkMode();
+      this.isDarkMode.set(isDark);
+      if (this.activeChartDataPoints && this.activeChartDataPoints.length > 0) {
+        if (isPlatformBrowser(this.platformId)) {
+          this.renderChart(this.activeChartDataPoints);
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -300,6 +312,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private renderChart(dataPoints: Array<{ date: string; price: number }>): void {
+    this.activeChartDataPoints = dataPoints;
     if (!isPlatformBrowser(this.platformId)) return;
     if (!this.chartCanvas) return;
 
@@ -413,10 +426,4 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onThemeChanged(isDark: boolean): void {
-    this.isDarkMode.set(isDark);
-    if (isPlatformBrowser(this.platformId)) {
-      this.loadHistoryData();
-    }
-  }
 }

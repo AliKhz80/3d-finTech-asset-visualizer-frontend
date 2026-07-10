@@ -1,1 +1,18 @@
-<router-outlet></router-outlet>
+<div class="flex flex-col h-screen overflow-hidden">
+  <!-- Static Header -->
+  <app-header class="block flex-shrink-0"></app-header>
+
+  <!-- Main Workspace -->
+  <div class="flex flex-1 min-h-0 overflow-hidden">
+    <!-- Static Sidebar -->
+    <app-sidebar class="hidden md:block flex-shrink-0"></app-sidebar>
+
+    <!-- Scrollable Main Content -->
+    <main class="flex-1 bg-surface transition-colors duration-200 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Static Footer -->
+  <app-footer class="block flex-shrink-0"></app-footer>
+</div>

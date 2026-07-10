@@ -22,6 +22,7 @@ export class MarketDataService {
 
   public isLoading = signal(false);
   public error = signal<string | null>(null);
+  public isDarkMode = signal(false);
 
   constructor(private http: HttpClient) {}
 

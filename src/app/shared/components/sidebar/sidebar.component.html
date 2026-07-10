@@ -1,0 +1,8 @@
+<aside class="w-64 border-r border-outline-variant/30 bg-surface-bright dark:bg-surface-container-lowest flex flex-col h-full transition-colors duration-200">
+  <nav class="flex-1 p-4 space-y-2">
+    <a *ngFor= "let item of menuItems" [routerLink]="item.route" routerLinkActive="bg-primary/10 text-primary" [routerLinkActiveOptions]="{ exact: true }" class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all text-xs font-semibold uppercase tracking-wider select-none cursor-pointer">
+      <span class="material-symbols-outlined text-base">{{ item.icon }}</span>
+      <span>{{ item.label }}</span>
+    </a>
+  </nav>
+</aside>

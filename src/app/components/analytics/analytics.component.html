@@ -1,14 +1,10 @@
-<app-header [showBackButton]="true" (themeChanged)="onThemeChanged($event)"></app-header>
+<!-- Loading State Indicator overlay -->
+<div *ngIf="isServiceLoading()" class="fixed top-20 right-8 z-50 flex items-center bg-white dark:bg-slate-800 shadow-md rounded-lg px-4 py-2 border border-outline-variant">
+  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+  <span class="ml-2 text-xs text-on-surface-variant font-semibold">Querying AlphaVantage...</span>
+</div>
 
-<main class="flex-1 relative min-h-screen flex flex-col bg-surface-container-low pt-16">
-  
-  <!-- Loading State Indicator overlay -->
-  <div *ngIf="isServiceLoading()" class="fixed top-20 right-8 z-50 flex items-center bg-white dark:bg-slate-800 shadow-md rounded-lg px-4 py-2 border border-outline-variant">
-    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-    <span class="ml-2 text-xs text-on-surface-variant font-semibold">Querying AlphaVantage...</span>
-  </div>
-
-  <div class="p-gutter lg:p-xl space-y-gutter flex-1 max-w-[1400px] mx-auto w-full flex flex-col gap-6">
+<div class="p-gutter lg:p-xl space-y-gutter flex-1 max-w-[1400px] mx-auto w-full flex flex-col gap-6 pt-6">
 
  <!-- User Friendly API Rate Limit Warning Banner -->
     <div *ngIf="apiWarning()" class="bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-500 rounded-xl p-4 flex items-center gap-3">
@@ -174,6 +170,3 @@
       </div>
     </footer>
   </div>
-</main>
-
-<app-footer class="mt-6 block rounded-xl w-full"></app-footer>

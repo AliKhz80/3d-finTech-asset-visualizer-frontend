@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, ViewChild, signal, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MarketDataService } from '../../services/market-data-service';
 import { Currency } from '../../models/currency.enum';
-import { HeaderComponent } from '../../shared/components/header/header.component';
-import { FooterComponent } from '../../shared/components/footer/footer.component';
 
 declare var Chart: any;
 declare var THREE: any;
@@ -12,8 +10,9 @@ declare var THREE: any;
 @Component({
   standalone: true,
   selector: 'dashboard',
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('chartGold', { static: false }) chartGoldCanvas!: ElementRef<HTMLCanvasElement>;
@@ -68,6 +67,17 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   ) {
     this.isServiceLoading = this.marketDataService.isLoading;
     this.serviceError = this.marketDataService.error;
+
+    // Reactively update 3D globe colors on theme changes
+    effect(() => {
+      const isDark = this.marketDataService.isDarkMode();
+      this.isDarkMode.set(isDark);
+      if (isPlatformBrowser(this.platformId)) {
+        if (this.threeGlobe && this.threeGlobe.material) {
+          this.threeGlobe.material.color.setHex(isDark ? 0x60a5fa : 0x1d4ed8);
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -359,15 +369,6 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-
-  public onThemeChanged(isDark: boolean): void {
-    this.isDarkMode.set(isDark);
-    if (isPlatformBrowser(this.platformId)) {
-      if (this.threeGlobe && this.threeGlobe.material) {
-        this.threeGlobe.material.color.setHex(isDark ? 0x60a5fa : 0x1d4ed8);
-      }
-    }
-  }
 
   private init3DVisualizer(): void {
     if (!isPlatformBrowser(this.platformId)) return;
